@@ -56,8 +56,7 @@ static void MX_USART2_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-//char UART_DATA_TO_RX[7];
-uint8_t rx_indx;
+uint8_t rx_buffer_pos;
 uint8_t rx_data[2];
 uint8_t rx_buffer[20];
 
@@ -227,20 +226,20 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 //
 //		HAL_UART_Receive_IT(&huart2, UART_DATA_TO_RX, 5);
 //	}
-	uint8_t i;
 	if (huart->Instance == USART2) {
 		if (rx_data[0] != '/') { //if it is not equal to 'COMMAND END' then write data into INCREMENTED POS of rx_buffer
-			rx_buffer[rx_indx++] = rx_data[0];
-		} else { // HERE IT MEANS (rx_data[0] == '/') IF it is equal to 'COMMAND END' then clear the buffer, compare data and move on
-			rx_indx = 0;
+			rx_buffer[rx_buffer_pos++] = rx_data[0];
+		} else { // HERE IT MEANS if(rx_data[0] == '/') IF it is equal to 'COMMAND END' then clear the buffer, compare data and move on
+			rx_buffer_pos = 0;
 			HAL_UART_Transmit(&huart2, "\n\r", 2, 100);
 			if (!strcmp(rx_buffer, "LED ON")) {
 				HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
 			} else if (!strcmp(rx_buffer, "LED OFF")) {
 				HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
 			}
+			uint8_t i;
 			//AFTER USING THE DATA CLEAR THE RX BUFFER
-			if (rx_indx == 0) { //RESET THE BUFFER ONLY WHEN RX { BUFFER == 0 }
+			if (rx_buffer_pos == 0) { //RESET THE BUFFER ONLY WHEN RX { BUFFER == 0 }
 				for (i = 0; i < 20; i++)
 					rx_buffer[i] = 0;
 			}
@@ -248,7 +247,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 		HAL_UART_Receive_IT(&huart2, rx_data, 1);
 		HAL_UART_Transmit(&huart2, (const uint8_t*) rx_data, 1, 100);
 	}
-
 }
 /* USER CODE END 4 */
 
