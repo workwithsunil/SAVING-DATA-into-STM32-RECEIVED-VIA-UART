@@ -12,7 +12,9 @@
 
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <string.h>
+#include <inttypes.h>
 
 extern UART_HandleTypeDef huart2;
 #define DEBUG_TX_PORT &huart2

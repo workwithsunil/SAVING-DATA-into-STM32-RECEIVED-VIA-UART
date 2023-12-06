@@ -23,6 +23,16 @@ bool Process_Received_Command_From_Uart(char Command_Buffer[20]) {
 				(const uint8_t*) "Command Failed: First character is not 'C'\0\n");
 
 	}
+	uint64_t hexValue;
+
+	// Copy from the 2nd position to the end
+	char hexString[20]; // Assuming the length can be at most 18 characters (plus null terminator)
+	strncpy(hexString, Command_Buffer + 2, sizeof(hexString) - 1);
+//	hexString[sizeof(hexString) - 1] = '\0'; // Null-terminate the hexString
+
+	// Convert the hexString to a hexadecimal value
+	sscanf(hexString, "%" SCNx64, &hexValue);
+
 	return 0;
 }
 void Print_UART(const uint8_t *message) {
