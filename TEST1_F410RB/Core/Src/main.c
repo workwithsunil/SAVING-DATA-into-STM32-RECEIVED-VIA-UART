@@ -226,9 +226,10 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 		if (rx_data[0] != '/') { //if it is not equal to 'COMMAND END' then write data into INCREMENTED POS of rx_buffer
 			Command_Buffer[rx_buffer_pos++] = rx_data[0];
 		} else { // HERE IT MEANS if(rx_data[0] == '/') IF it is equal to 'COMMAND END' then clear the buffer, compare data and move on
-			rx_buffer_pos = 0;
+			Command_Buffer[rx_buffer_pos++] = '\0'; //ADDING NULL TERMINATOR AT THE END
 			HAL_UART_Transmit(&huart2, (const uint8_t*) "\n\r", 2, 100);
 			Process_Received_Command_From_Uart(Command_Buffer);
+			rx_buffer_pos = 0;
 			//AFTER USING THE DATA CLEAR THE RX BUFFER (Command_Buffer)
 			uint8_t i;
 			if (rx_buffer_pos == 0) { //RESET THE BUFFER ONLY WHEN RX { BUFFER == 0 }
@@ -238,6 +239,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 		}
 		HAL_UART_Receive_IT(&huart2, rx_data, 1);
 		HAL_UART_Transmit(&huart2, (const uint8_t*) rx_data, 1, 100);
+
+		//PROCESS RECEIVED DATA
 	}
 }
 /* USER CODE END 4 */

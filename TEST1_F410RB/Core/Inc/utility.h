@@ -19,7 +19,7 @@
 extern UART_HandleTypeDef huart2;
 #define DEBUG_TX_PORT &huart2
 
-bool Process_Received_Command_From_Uart(char Command_Buffer[20]);
+bool Process_Received_Command_From_Uart(char Command_Buffer[]);
 void Print_UART(const uint8_t *message);
 
 #endif /* INC_UTILITY_H_ */
