@@ -21,8 +21,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include<string.h>
-#include "utility.h"
+#include "ee.h"
+#define _EE_ADDR_INUSE ((uint32_t)0x08020000)
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -41,7 +41,6 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 
@@ -50,16 +49,13 @@ UART_HandleTypeDef huart2;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-uint8_t rx_buffer_pos;
-uint8_t rx_data[2];
-char Command_Buffer[20];
+
 /* USER CODE END 0 */
 
 /**
@@ -89,20 +85,15 @@ int main(void) {
 
 	/* Initialize all configured peripherals */
 	MX_GPIO_Init();
-	MX_USART2_UART_Init();
 	/* USER CODE BEGIN 2 */
-	HAL_UART_Receive_IT(&huart2, (uint8_t*) rx_data, 1); //INITIALIZE THE INTERRUPT
+//	uint8_t datawrite[4] = { 'A', 'B', 'C', 'D' };
+//	ee_write(_EE_ADDR_INUSE, datawrite, 4);
+//	uint8_t dataread[4];
+//	ee_read(_EE_ADDR_INUSE, dataread, 4);
+//	HAL_Delay(1000);
 
-	ee_init();
-	uint8_t dataread[8];
-	ee_read(0, 8, dataread);
+	ee_format_sector();
 
-	uint64_t result = 0;
-	for (int i = 0; i < 8; i++) {
-		result |= ((uint64_t) dataread[i] << (i * 8));
-	}
-
-	HAL_Delay(1000);
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
@@ -111,6 +102,8 @@ int main(void) {
 		/* USER CODE END WHILE */
 
 		/* USER CODE BEGIN 3 */
+//		HAL_GPIO_TogglePin(LED_PIN_GPIO_Port, LED_PIN_Pin);
+//		HAL_Delay(100);
 	}
 	/* USER CODE END 3 */
 }
@@ -126,7 +119,7 @@ void SystemClock_Config(void) {
 	/** Configure the main internal regulator output voltage
 	 */
 	__HAL_RCC_PWR_CLK_ENABLE();
-	__HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
+	__HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE2);
 
 	/** Initializes the RCC Oscillators according to the specified parameters
 	 * in the RCC_OscInitTypeDef structure.
@@ -134,13 +127,7 @@ void SystemClock_Config(void) {
 	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
 	RCC_OscInitStruct.HSIState = RCC_HSI_ON;
 	RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-	RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
-	RCC_OscInitStruct.PLL.PLLM = 16;
-	RCC_OscInitStruct.PLL.PLLN = 336;
-	RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV4;
-	RCC_OscInitStruct.PLL.PLLQ = 4;
-	RCC_OscInitStruct.PLL.PLLR = 2;
+	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
 	if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
 		Error_Handler();
 	}
@@ -149,45 +136,14 @@ void SystemClock_Config(void) {
 	 */
 	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
 			| RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
-	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
 	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
+	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
 	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK) {
+	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK) {
 		Error_Handler();
 	}
-}
-
-/**
- * @brief USART2 Initialization Function
- * @param None
- * @retval None
- */
-static void MX_USART2_UART_Init(void) {
-
-	/* USER CODE BEGIN USART2_Init 0 */
-
-	/* USER CODE END USART2_Init 0 */
-
-	/* USER CODE BEGIN USART2_Init 1 */
-
-	/* USER CODE END USART2_Init 1 */
-	huart2.Instance = USART2;
-	huart2.Init.BaudRate = 115200;
-	huart2.Init.WordLength = UART_WORDLENGTH_8B;
-	huart2.Init.StopBits = UART_STOPBITS_1;
-	huart2.Init.Parity = UART_PARITY_NONE;
-	huart2.Init.Mode = UART_MODE_TX_RX;
-	huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-	huart2.Init.OverSampling = UART_OVERSAMPLING_16;
-	if (HAL_UART_Init(&huart2) != HAL_OK) {
-		Error_Handler();
-	}
-	/* USER CODE BEGIN USART2_Init 2 */
-
-	/* USER CODE END USART2_Init 2 */
-
 }
 
 /**
@@ -204,56 +160,23 @@ static void MX_GPIO_Init(void) {
 	__HAL_RCC_GPIOC_CLK_ENABLE();
 	__HAL_RCC_GPIOH_CLK_ENABLE();
 	__HAL_RCC_GPIOA_CLK_ENABLE();
-	__HAL_RCC_GPIOB_CLK_ENABLE();
 
 	/*Configure GPIO pin Output Level */
-	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(LED_PIN_GPIO_Port, LED_PIN_Pin, GPIO_PIN_RESET);
 
-	/*Configure GPIO pin : LED_BTN_Pin */
-	GPIO_InitStruct.Pin = LED_BTN_Pin;
-	GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	HAL_GPIO_Init(LED_BTN_GPIO_Port, &GPIO_InitStruct);
-
-	/*Configure GPIO pin : LD2_Pin */
-	GPIO_InitStruct.Pin = LD2_Pin;
+	/*Configure GPIO pin : LED_PIN_Pin */
+	GPIO_InitStruct.Pin = LED_PIN_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-	HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
+	HAL_GPIO_Init(LED_PIN_GPIO_Port, &GPIO_InitStruct);
 
 	/* USER CODE BEGIN MX_GPIO_Init_2 */
 	/* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
-	/* Prevent unused argument(s) compilation warning */
-	UNUSED(huart);
-	/* NOTE: This function should not be modified, when the callback is needed,
-	 the HAL_UART_RxCpltCallback could be implemented in the user file
-	 */
-	if (huart->Instance == USART2) {
-		if (rx_data[0] != '/') { //if it is not equal to 'COMMAND END' then write data into INCREMENTED POS of rx_buffer
-			Command_Buffer[rx_buffer_pos++] = rx_data[0];
-		} else { // HERE IT MEANS if(rx_data[0] == '/') IF it is equal to 'COMMAND END' then clear the buffer, compare data and move on
-			Command_Buffer[rx_buffer_pos++] = '\0'; //ADDING NULL TERMINATOR AT THE END
-			HAL_UART_Transmit(&huart2, (const uint8_t*) "\n\r", 2, 100); //PRINT NEW LINE AND CARRRIAGE RETURN
-			Process_Received_Command_From_Uart(Command_Buffer);
-			rx_buffer_pos = 0;
-			//AFTER USING THE DATA CLEAR THE RX BUFFER (Command_Buffer)
-			uint8_t i;
-			if (rx_buffer_pos == 0) { //RESET THE BUFFER ONLY WHEN RX { BUFFER == 0 }
-				for (i = 0; i < 20; i++)
-					Command_Buffer[i] = 0;
-			}
-		}
-		HAL_UART_Receive_IT(&huart2, rx_data, 1);
-		HAL_UART_Transmit(&huart2, (const uint8_t*) rx_data, 1, 100); //PRINT THE RECEIVED CHARACTER
 
-		//PROCESS RECEIVED DATA
-	}
-}
 /* USER CODE END 4 */
 
 /**

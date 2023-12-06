@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <inttypes.h>
+#include "ee.h"
 
 extern UART_HandleTypeDef huart2;
 #define DEBUG_TX_PORT &huart2

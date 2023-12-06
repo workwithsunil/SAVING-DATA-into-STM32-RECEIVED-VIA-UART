@@ -42,7 +42,16 @@ bool Process_Received_Command_From_Uart(char Command_Buffer_1[]) {
 			hexValue += hex_64_String[i] - 'a' + 10;
 		}
 	}
-	hexValue++;
+	//WRITE HEX VALUE IN EEPROM
+	//convert hex64 into uint8_t array
+	uint8_t byteArray[8];
+
+	for (int i = 0; i < 8; i++) {
+		byteArray[i] = (hexValue >> (i * 8)) & 0xFF;
+	}
+	ee_init();
+	ee_writeToRam(0, 8, byteArray);
+	ee_commit();
 	return 0;
 }
 void Print_UART(const uint8_t *message) {
