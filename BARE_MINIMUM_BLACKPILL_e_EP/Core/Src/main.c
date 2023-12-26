@@ -91,7 +91,6 @@ int main(void) {
 //	uint8_t dataread[4];
 //	ee_read(_EE_ADDR_INUSE, dataread, 4);
 //	HAL_Delay(1000);
-
 	ee_format_sector();
 
 	/* USER CODE END 2 */
