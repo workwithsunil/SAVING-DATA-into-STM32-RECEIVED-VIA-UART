@@ -1,0 +1,3 @@
+../Core/Src/ee.c:9:6:ee_write_64	32	static
+../Core/Src/ee.c:28:10:ee_read_64	32	static
+../Core/Src/ee.c:40:6:ee_format_page	40	static
